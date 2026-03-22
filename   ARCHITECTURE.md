@@ -3,7 +3,7 @@
 ## 1. Context diagram
 
 <p align="center">
-  <img src="docs/context_diagram.png" width="400"/>
+  <img src="docs/context_diagram.png" width="200"/>
 </p>
 The context diagram shows the system and its relationship with users and other external systems.
 It includes the User, the Search Engine and the File System (external). 
