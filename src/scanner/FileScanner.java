@@ -1,11 +1,12 @@
 package scanner;
 
-import database.DatabaseManager;
+import database.FileDocument;
+import database.FileRepository;
 import java.io.File;
-import java.nio.file.Files;
 
 public class FileScanner {
-    private DatabaseManager db = new DatabaseManager();
+    private FileRepository repository = new FileRepository();
+    private ScanFilter filter = new ScanFilter();
 
     // recursive walk through directory tree
     public void walk(File folder) {
@@ -14,13 +15,16 @@ public class FileScanner {
 
         for (File file : list) {
             if (file.isDirectory()) {
-                walk(file); // recursive call for subdirectories
-            } else if (file.getName().endsWith(".txt")) {
+                walk(file);
+            } else if (filter.isTextFile(file.getName())) {
                 try {
-                    String content = Files.readString(file.toPath());
-                    db.save(file.getAbsolutePath(), file.getName(), content);
-                    System.out.println("Indexed: " + file.getName());
-                } catch (Exception e) { System.err.println("Failed: " + file.getName()); }
+                    // extract the content of the file
+                    String content = java.nio.file.Files.readString(file.toPath());
+                    // create aa document record and send it to the repo
+                    FileDocument doc = new FileDocument(file.getAbsolutePath(), file.getName(),
+                            file.lastModified(), file.length(), content);
+                    repository.save(doc);
+                } catch (Exception e) {}
             }
         }
     }
