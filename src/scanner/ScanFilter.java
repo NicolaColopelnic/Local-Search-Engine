@@ -1,14 +1,19 @@
 package scanner;
 
+import database.Configuration;
 import java.io.File;
 
 public class ScanFilter {
     private final String[] ignoredFolders;
     private final String[] allowedExtensions;
 
-    public ScanFilter() {
-        this.ignoredFolders = new String[]{".git", ".idea", "target", "loop_trap"};
-        this.allowedExtensions = new String[]{".txt", ".md", ".java", ".xml"};
+    public ScanFilter(Configuration config) {
+        // read the list from config.txt
+        String rawFolders = config.get("ignoreFolders", ".git,target"); // default if the file is missing
+        this.ignoredFolders = rawFolders.split(",");
+
+        String rawExtensions = config.get("textExtensions", ".md");
+        this.allowedExtensions = rawExtensions.split(",");
     }
 
     // determine which files to ignore

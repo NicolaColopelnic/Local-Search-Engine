@@ -1,3 +1,4 @@
+import database.Configuration;
 import database.DatabaseManager;
 import database.FileRepository;
 import scanner.FileScanner;
@@ -8,18 +9,18 @@ import java.io.IOException;
 
 public class Main {
     public static void main(String[] args) throws IOException {
+        Configuration config = new Configuration();
 
-        String path = "C:\\SD-project";
-        String query = "Database";
+        String path = config.get("rootDirectory", "C:\\");
+        String query = config.get("searchTerm", "Java");
 
         DatabaseManager.initialize();
         FileRepository repository = new FileRepository();
         Indexer indexer = new Indexer(repository);
-        FileScanner scanner = new FileScanner(indexer);
+        FileScanner scanner = new FileScanner(indexer, config);
 
         long startTime = System.currentTimeMillis();
 
-        System.out.println("Starting System Scan...");
         System.out.println();
         scanner.scanDirectory("C:\\SD-project");
 

@@ -51,3 +51,6 @@ build/
 *.db-journal
 
 Thumbs.db
+
+permission_denied.txt
+loop_trap/

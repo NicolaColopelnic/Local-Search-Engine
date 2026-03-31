@@ -1,0 +1,7 @@
+rootDirectory=C:/SD-project
+
+ignoreFolders=.git,.idea,target
+
+textExtensions=.md,.xml,.json,.properties
+
+searchTerm=Database Manager

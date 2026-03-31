@@ -1,5 +1,7 @@
 package scanner;
 
+import database.Configuration;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
@@ -17,9 +19,9 @@ public class FileScanner {
     // track paths already visited to avoid symlink loops
     private final Set<String> visitedCanonicalPaths = new HashSet<>();
 
-    public FileScanner(Indexer indexer) {
+    public FileScanner(Indexer indexer, Configuration config) {
         this.indexer = indexer;
-        this.filter = new ScanFilter();
+        this.filter = new ScanFilter(config);
         this.reader = new ContentReader();
     }
 
