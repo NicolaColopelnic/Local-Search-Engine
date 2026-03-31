@@ -1,7 +1,7 @@
 package search;
 
 public class CleanQuery {
-    public String clean(String query) {
+    public String sanitize(String query) {
         // remove special characters that crash fts5
         String clean = query.replaceAll("[^a-zA-Z0-9 ]", " ");
 

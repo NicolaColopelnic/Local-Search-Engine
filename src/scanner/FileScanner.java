@@ -1,31 +1,67 @@
 package scanner;
 
-import database.FileDocument;
-import database.FileRepository;
 import java.io.File;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
+
+// recursive traversal of the file system
 
 public class FileScanner {
-    private FileRepository repository = new FileRepository();
-    private ScanFilter filter = new ScanFilter();
+    private final Indexer indexer;
+    private final ScanFilter filter;
+    private final ContentReader reader;
+    private int foldersScanned = 0;
+    private int loopsDetected = 0;
+
+    // track paths already visited to avoid symlink loops
+    private final Set<String> visitedCanonicalPaths = new HashSet<>();
+
+    public FileScanner(Indexer indexer) {
+        this.indexer = indexer;
+        this.filter = new ScanFilter();
+        this.reader = new ContentReader();
+    }
+
+    public void scanDirectory(String rootPath) throws IOException {
+        File root = new File(rootPath);
+        if (root.exists()) walk(root); // recursive traversal
+    }
 
     // recursive walk through directory tree
-    public void walk(File folder) {
+    private void walk(File folder) throws IOException {
+        String canonicalPath = folder.getCanonicalPath();
+
+        if (visitedCanonicalPaths.contains(canonicalPath)) {
+            loopsDetected++;
+            System.out.println("[LOOP DETECTED] Skipping: " + folder.getPath());
+            return;
+        }
+        visitedCanonicalPaths.add(canonicalPath);
+
+        foldersScanned++;
         File[] list = folder.listFiles();
         if (list == null) return;
 
         for (File file : list) {
+            if (filter.isIgnored(file)) continue;
+
             if (file.isDirectory()) {
-                walk(file);
-            } else if (filter.isTextFile(file.getName())) {
-                try {
-                    // extract the content of the file
-                    String content = java.nio.file.Files.readString(file.toPath());
-                    // create aa document record and send it to the repo
-                    FileDocument doc = new FileDocument(file.getAbsolutePath(), file.getName(),
-                            file.lastModified(), file.length(), content);
-                    repository.save(doc);
-                } catch (Exception e) {}
+                walk(file); // recursive call for subdirectories
+            } else {
+                // read content only from text files
+                String content = "";
+                if (filter.isTextFile(file.getName())) {
+                    content = reader.readAll(file);
+                }
+
+                // hand off to indexer
+                indexer.processAndIndexFile(file, content);
             }
         }
     }
+
+    public int getFoldersScanned() { return foldersScanned; }
+    public int getLoopsDetected() { return loopsDetected; }
+
 }

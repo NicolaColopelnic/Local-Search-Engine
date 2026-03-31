@@ -1,21 +1,37 @@
 package database;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+// building the database tables
 
 public class DatabaseManager {
-    private static final String URL = "jdbc:sqlite:search_engine.db";
+    public static void initialize() {
+        // metadata table:
+        String sqlMetadata = "CREATE TABLE IF NOT EXISTS files (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "path TEXT UNIQUE, " + // no two rows can have the same path - incremental indexing
+                "last_modified INTEGER, " +
+                "size INTEGER, " +
+                "checksum TEXT);";
 
-    public void initialize() {
-        try (Connection conn = DriverManager.getConnection(URL);
-             Statement stmt = conn.createStatement()) {
+        // search engine table
+        String sqlFTS = "CREATE VIRTUAL TABLE IF NOT EXISTS file_index USING fts5(path, filename, content);";
+        // fts5 - breaks every word in a file into a fast index
 
-            // metadata table
-            stmt.execute("CREATE TABLE IF NOT EXISTS files (path TEXT UNIQUE, filename TEXT);");
+        // open the connection to the database
+        try (Connection connection = DbConnection.getConnection();
+             Statement stm = connection.createStatement()) {
+            // stm is used to write in the database
+            stm.execute(sqlMetadata);
+            stm.execute(sqlFTS);
+            // create the tables
 
-            // search engine table
-            stmt.execute("CREATE VIRTUAL TABLE IF NOT EXISTS file_index USING fts5(filename, content);");
+            System.out.println("Database initialized successfully.");
 
-        } catch (SQLException e) { e.printStackTrace(); }
+        } catch (SQLException e) {
+            System.err.println("Error: " + e.getMessage());
+        }
     }
-
 }

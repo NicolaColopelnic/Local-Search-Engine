@@ -1,20 +1,27 @@
 package search;
-import database.DbConnection;
-import java.sql.*;
+
+import java.util.List;
 
 public class SearchManager {
-    public void search(String query) {
-        String sql = "SELECT filename FROM file_index WHERE content MATCH ?";
+    private final CleanQuery sanitizer = new CleanQuery();
+    private final SearchRepository repository = new SearchRepository();
 
-        try (Connection conn = DbConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+    public void search(String userQuery) {
+        String safeQuery = sanitizer.sanitize(userQuery);
 
-            pstmt.setString(1, query);
-            ResultSet rs = pstmt.executeQuery();
+        List<SearchResult> results = repository.executeSearch(safeQuery);
 
-            while (rs.next()) {
-                System.out.println("- " + rs.getString("filename"));
+        System.out.println("\nSearch Results for: " + userQuery);
+        System.out.println();
+
+        if (results.isEmpty()) {
+            System.out.println("No results found.");
+        } else {
+            for (SearchResult res : results) {
+                System.out.println("File: " + res.fileName());
+                System.out.println("Context: " + res.preview());
+                System.out.println();
             }
-        } catch (SQLException e) { e.printStackTrace(); }
+        }
     }
 }

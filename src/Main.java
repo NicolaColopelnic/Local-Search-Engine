@@ -4,22 +4,48 @@ import scanner.FileScanner;
 import scanner.Indexer;
 import search.SearchManager;
 
-import java.io.File;
-import java.sql.*;
+import java.io.IOException;
 
 public class Main {
-    public static void main(String[] args) throws SQLException {
-        DatabaseManager db = new DatabaseManager();
-        db.initialize();
+    public static void main(String[] args) throws IOException {
+
+        String path = "C:\\SD-project";
+        String query = "Database";
+
+        DatabaseManager.initialize();
         FileRepository repository = new FileRepository();
         Indexer indexer = new Indexer(repository);
+        FileScanner scanner = new FileScanner(indexer);
 
-        FileScanner scanner = new FileScanner();
-        scanner.walk(new File("C:\\SD-project"));
+        long startTime = System.currentTimeMillis();
 
+        System.out.println("Starting System Scan...");
+        System.out.println();
+        scanner.scanDirectory("C:\\SD-project");
+
+        long endTime = System.currentTimeMillis();
+        double durationSeconds = (endTime - startTime) / 1000.0;
+
+        System.out.println();
+        System.out.println("SCAN REPORT");
+        System.out.println("Execution Time: " + durationSeconds + " seconds");
+        System.out.println("Folders Traversed: " + scanner.getFoldersScanned());
+        System.out.println("Loops Detected: " + scanner.getLoopsDetected());
+        System.out.println("Files Indexed: " + indexer.getFilesIndexed());
+        System.out.println("Files Skipped: " + indexer.getFilesSkipped());
+        System.out.println("Files Failed: " + indexer.getFilesFailed());
+
+        long totalBytes = indexer.getTotalBytesIndexed();
+        if (totalBytes < 1024 * 1024) {
+            double kbIndexed = totalBytes / 1024.0;
+            System.out.printf("Total Data Indexed: %.2f KB\n", kbIndexed);
+        } else {
+            double mbIndexed = totalBytes / (1024.0 * 1024.0);
+            System.out.printf("Total Data Indexed: %.2f MB\n", mbIndexed);
+        }
+        System.out.println();
 
         SearchManager searcher = new SearchManager();
         searcher.search("Database");
-
     }
 }
