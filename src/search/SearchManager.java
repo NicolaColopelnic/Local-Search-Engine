@@ -23,6 +23,7 @@ public class SearchManager {
             for (SearchResult res : results) {
                 System.out.println("File: " + res.fileName());
                 System.out.println("Context: " + res.preview());
+                System.out.println("File Score: " + res.score());
                 System.out.println();
             }
         }

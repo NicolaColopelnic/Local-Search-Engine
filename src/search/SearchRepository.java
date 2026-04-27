@@ -12,8 +12,9 @@ public class SearchRepository {
         List<SearchResult> results = new ArrayList<>();
         String query = buildSql(request);
 
-        String sql = "SELECT filename, snippet(file_index, 2, '[', ']', '...', 10) as preview " +
-                "FROM file_index WHERE file_index MATCH ?;";
+        String sql = "SELECT file_index.filename, snippet(file_index, 2, '[', ']', '...', 10) as preview, f.rank_score " +
+                "FROM file_index JOIN files f ON file_index.path = f.path " +
+                "WHERE file_index MATCH ? ORDER BY f.rank_score DESC;";
 
         try(Connection conn = DbConnection.getConnection();
             PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -21,7 +22,7 @@ public class SearchRepository {
             ResultSet rs = pstmt.executeQuery();
 
             while(rs.next()) {
-                results.add(new SearchResult(rs.getString("filename"), rs.getString("preview")));
+                results.add(new SearchResult(rs.getString("filename"), rs.getString("preview"), rs.getDouble("rank_score")));
             }
         } catch (SQLException e) {
             System.err.println("Error: " + e.getMessage());

@@ -15,6 +15,8 @@ public class Indexer {
     private int filesFailed = 0;
     private long totalBytesIndexed = 0;
 
+    private final PathScore scorer = new PathScore();
+
     public Indexer(FileRepository repository) {
         this.repository = repository;
     }
@@ -28,6 +30,8 @@ public class Indexer {
             // get existing fingerprint from the database to detect modifications
             String oldChecksum = repository.getChecksum(path);
 
+            double score = scorer.calculateScore(file);
+
             // stop if the file is unchanged
             if (newChecksum.equals(oldChecksum)) {
                 filesSkipped++;
@@ -37,16 +41,16 @@ public class Indexer {
 
             // identify is the file is new or just updated
             if (oldChecksum.equals("")) {
-                System.out.println("[NEW] Adding to index: " + file.getName());
+                System.out.printf("[NEW] %s (Score: %.1f)%n", file.getName(), score);
             } else {
-                System.out.println("[UPDATE] Content changed in: " + file.getName());
+                System.out.printf("[UPDATE] %s (Score: %.1f)%n", file.getName(), score);
             }
 
             filesIndexed++;
             totalBytesIndexed += file.length();
 
             // instantiate a file object
-            FileDocument doc = new FileDocument(path, file.getName(), file.lastModified(), file.length(), content, newChecksum);
+            FileDocument doc = new FileDocument(path, file.getName(), file.lastModified(), file.length(), content, newChecksum, score);
             repository.save(doc);
 
         } catch (Exception e) {

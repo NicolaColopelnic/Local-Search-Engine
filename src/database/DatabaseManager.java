@@ -14,7 +14,8 @@ public class DatabaseManager {
                 "path TEXT UNIQUE, " + // no two rows can have the same path - incremental indexing
                 "last_modified INTEGER, " +
                 "size INTEGER, " +
-                "checksum TEXT);";
+                "checksum TEXT," +
+                "rank_score REAL);";
 
         // search engine table
         String sqlFTS = "CREATE VIRTUAL TABLE IF NOT EXISTS file_index USING fts5(path, filename, content);";
