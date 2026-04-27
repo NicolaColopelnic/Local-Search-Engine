@@ -6,9 +6,11 @@ import scanner.Indexer;
 import search.SearchManager;
 
 import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Scanner;
 
 public class Main {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, SQLException {
         Configuration config = new Configuration();
 
         String path = config.get("rootDirectory", "C:\\");
@@ -22,7 +24,7 @@ public class Main {
         long startTime = System.currentTimeMillis();
 
         System.out.println();
-        scanner.scanDirectory("C:\\SD-project");
+        scanner.scanDirectory(path);
 
         long endTime = System.currentTimeMillis();
         double durationSeconds = (endTime - startTime) / 1000.0;
@@ -47,6 +49,17 @@ public class Main {
         System.out.println();
 
         SearchManager searcher = new SearchManager();
-        searcher.search("Database");
+        Scanner inputScanner = new Scanner(System.in);
+
+        while(true) {
+            System.out.println("Enter search query: ");
+            String searchQuery = inputScanner.nextLine();
+            if(searchQuery.equals("exit")) {
+                System.out.println("Program closed.");
+                break;
+            }
+            searcher.search(searchQuery);
+        }
+
     }
 }

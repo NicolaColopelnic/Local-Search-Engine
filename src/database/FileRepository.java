@@ -8,7 +8,7 @@ public class FileRepository {
 
     public void save(database.FileDocument doc) {
 
-        // puts info into the files table, if the path already exists, it overwrites the old row with the new one
+        // put info into the files table, if the path already exists, it overwrites the old row with the new one
         String sqlMetadata = "INSERT OR REPLACE INTO files(path, last_modified, size, checksum) VALUES(?,?,?,?)";
 
         // delete the old search data for the path before adding the new version (fts5 tables don't have unique constraints)
@@ -39,11 +39,11 @@ public class FileRepository {
                 pstmt.executeUpdate();
             }
         } catch (SQLException e) {
-            System.err.println("Database update rrror: " + e.getMessage());
+            System.err.println("Database update error: " + e.getMessage());
         }
     }
 
-    //
+
     public String getChecksum(String path) {
         String sql = "SELECT checksum FROM files WHERE path = ?";
         // retrieve the hash value from the files table for a specific file path

@@ -4,6 +4,7 @@ import java.io.File;
 import java.nio.file.Files;
 
 // extract the data of a file before sending to indexer
+// converts a file to a java string
 
 public class ContentReader {
     public String readAll(File file) {

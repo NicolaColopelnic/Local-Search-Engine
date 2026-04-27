@@ -1,7 +1,7 @@
-rootDirectory=C:/SD-project
+rootDirectory=D:/SD-project
 
 ignoreFolders=.git,.idea,target
 
-textExtensions=.md,.xml,.json,.properties
+textExtensions=.java,.txt,.md,.xml,.java
 
-searchTerm=Database Manager
+searchTerm=Database

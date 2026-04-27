@@ -23,6 +23,9 @@ public class DatabaseManager {
         // open the connection to the database
         try (Connection connection = DbConnection.getConnection();
              Statement stm = connection.createStatement()) {
+            // delete tables and start fresh
+            //stm.execute("DROP TABLE IF EXISTS files;");
+            //stm.execute("DROP TABLE IF EXISTS file_index;");
             // stm is used to write in the database
             stm.execute(sqlMetadata);
             stm.execute(sqlFTS);
