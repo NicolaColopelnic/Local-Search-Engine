@@ -19,6 +19,11 @@ public class Indexer {
 
     private final PathScore scorer = new PathScore();
 
+    private ScanListener listener;
+    public void setListener(ScanListener listener) {
+        this.listener = listener;
+    }
+
     public Indexer(FileRepository repository) {
         this.repository = repository;
     }
@@ -37,15 +42,15 @@ public class Indexer {
             // stop if the file is unchanged
             if (newChecksum.equals(oldChecksum)) {
                 filesSkipped++;
-                System.out.println("[SKIP] No changes detected for: " + file.getName());
+                if (listener != null) listener.onLog("[SKIP] No changes: " + file.getName());
                 return;
             }
 
             // identify is the file is new or just updated
             if (oldChecksum.equals("")) {
-                System.out.printf("[NEW] %s (Score: %.1f)%n", file.getName(), score);
+                if (listener != null) listener.onLog("[NEW] " + file.getName());
             } else {
-                System.out.printf("[UPDATE] %s (Score: %.1f)%n", file.getName(), score);
+                if (listener != null) listener.onLog("[UPDATE] " + file.getName());
             }
 
             filesIndexed++;
@@ -69,4 +74,5 @@ public class Indexer {
     public int getFilesSkipped() { return filesSkipped; }
     public int getFilesFailed() { return filesFailed; }
     public long getTotalBytesIndexed() { return totalBytesIndexed; }
+    public ScanListener getListener() { return listener; }
 }

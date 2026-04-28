@@ -36,8 +36,8 @@ public class FileScanner {
 
         if (visitedCanonicalPaths.contains(canonicalPath)) {
             loopsDetected++;
-            System.out.println("[LOOP DETECTED] Skipping: " + folder.getPath());
-            return;
+            if (indexer.getListener() != null)
+                indexer.getListener().onLog("[LOOP] Skipping: " + folder.getPath());            return;
         }
         visitedCanonicalPaths.add(canonicalPath);
 
