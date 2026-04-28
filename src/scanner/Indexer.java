@@ -3,6 +3,8 @@ package scanner;
 import database.FileDocument;
 import database.FileRepository;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
 
 // handles incremental indexing logic,
 // manages error handling, and performance metrics for the final report
@@ -49,8 +51,12 @@ public class Indexer {
             filesIndexed++;
             totalBytesIndexed += file.length();
 
+            BasicFileAttributes attrs = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+            long lastAccessed = attrs.lastAccessTime().toMillis();
+            long lastModified = attrs.lastModifiedTime().toMillis();
+
             // instantiate a file object
-            FileDocument doc = new FileDocument(path, file.getName(), file.lastModified(), file.length(), content, newChecksum, score);
+            FileDocument doc = new FileDocument(path, file.getName(), lastModified, lastAccessed, file.length(), content, newChecksum, score);
             repository.save(doc);
 
         } catch (Exception e) {

@@ -3,7 +3,8 @@ import database.DatabaseManager;
 import database.FileRepository;
 import scanner.FileScanner;
 import scanner.Indexer;
-import search.SearchManager;
+import search.*;
+import search.LastModifiedRanking;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -58,6 +59,16 @@ public class Main {
                 System.out.println("Program closed.");
                 break;
             }
+            searcher.setRankingStrategy(new ScoreRanking());
+            searcher.search(searchQuery);
+
+            searcher.setRankingStrategy(new AlphabeticRanking());
+            searcher.search(searchQuery);
+
+            searcher.setRankingStrategy(new LastModifiedRanking());
+            searcher.search(searchQuery);
+
+            searcher.setRankingStrategy(new LastAccessedRanking());
             searcher.search(searchQuery);
         }
 

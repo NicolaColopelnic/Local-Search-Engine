@@ -13,6 +13,7 @@ public class DatabaseManager {
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "path TEXT UNIQUE, " + // no two rows can have the same path - incremental indexing
                 "last_modified INTEGER, " +
+                "last_accessed INTEGER, " +
                 "size INTEGER, " +
                 "checksum TEXT," +
                 "rank_score REAL);";

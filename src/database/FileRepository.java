@@ -9,7 +9,7 @@ public class FileRepository {
     public void save(database.FileDocument doc) {
 
         // put info into the files table, if the path already exists, it overwrites the old row with the new one
-        String sqlMetadata = "INSERT OR REPLACE INTO files(path, last_modified, size, checksum, rank_score) VALUES(?,?,?,?,?)";
+        String sqlMetadata = "INSERT OR REPLACE INTO files(path, last_modified, last_accessed, size, checksum, rank_score) VALUES(?,?,?,?,?,?)";
 
         // delete the old search data for the path before adding the new version (fts5 tables don't have unique constraints)
         String sqlDeleteIndex = "DELETE FROM file_index WHERE path = ?";
@@ -27,9 +27,10 @@ public class FileRepository {
             try (PreparedStatement pstmt = connection.prepareStatement(sqlMetadata)) {
                 pstmt.setString(1, doc.path());
                 pstmt.setLong(2, doc.lastModified());
-                pstmt.setLong(3, doc.size());
-                pstmt.setString(4, doc.checksum());
-                pstmt.setDouble(5, doc.rankScore());
+                pstmt.setLong(3, doc.lastAccessed());
+                pstmt.setLong(4, doc.size());
+                pstmt.setString(5, doc.checksum());
+                pstmt.setDouble(6, doc.rankScore());
                 pstmt.executeUpdate();
             }
 
