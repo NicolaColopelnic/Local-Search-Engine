@@ -16,7 +16,14 @@ public class DatabaseManager {
                 "last_accessed INTEGER, " +
                 "size INTEGER, " +
                 "checksum TEXT," +
-                "rank_score REAL);";
+                "rank_score REAL, " +
+                "popularity_count INTEGER DEFAULT 0);";
+
+        // Inside DatabaseManager.java -> initialize()
+        String sqlHistory = "CREATE TABLE IF NOT EXISTS search_history (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "query TEXT, " +
+                "search_date INTEGER);";
 
         // search engine table
         String sqlFTS = "CREATE VIRTUAL TABLE IF NOT EXISTS file_index USING fts5(path, filename, content);";
@@ -31,6 +38,7 @@ public class DatabaseManager {
             // stm is used to write in the database
             stm.execute(sqlMetadata);
             stm.execute(sqlFTS);
+            stm.execute(sqlHistory);
             // create the tables
 
             System.out.println("Database initialized successfully.");

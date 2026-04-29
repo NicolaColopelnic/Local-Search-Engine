@@ -14,11 +14,15 @@ public class SearchUI extends JFrame implements ScanListener {
     private JTextField queryField;
     private JComboBox<String> strategyBox;
     private SearchManager searchManager;
+    private JLabel suggestionLabel;
+    private HistoryManager historyManager = new HistoryManager();
 
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, HH:mm:ss");
 
     public SearchUI(SearchManager manager) {
         this.searchManager = manager;
+        this.searchManager.addObserver(historyManager);
+
         setTitle("Local Search Engine");
         setSize(900, 700);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -44,9 +48,13 @@ public class SearchUI extends JFrame implements ScanListener {
     private JPanel createSearchPanel() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
         JPanel top = new JPanel(new FlowLayout());
+        suggestionLabel = new JLabel("Suggestions: ");
+        suggestionLabel.setForeground(Color.GRAY);
+        suggestionLabel.setFont(new Font("SansSerif", Font.ITALIC, 12));
+        panel.add(suggestionLabel, BorderLayout.SOUTH);
 
         queryField = new JTextField(30);
-        strategyBox = new JComboBox<>(new String[]{"Score", "Alphabetical", "Last Modified", "Last Accessed"});
+        strategyBox = new JComboBox<>(new String[]{"Score", "Alphabetical", "Last Modified", "Last Accessed", "Popularity"});
         JButton btn = new JButton("Search");
 
         top.add(new JLabel("Query:")); top.add(queryField);
@@ -59,7 +67,20 @@ public class SearchUI extends JFrame implements ScanListener {
         resultsArea.setMargin(new Insets(10, 10, 10, 10));
 
         btn.addActionListener(e -> runSearch());
-        queryField.addActionListener(e -> runSearch());
+        queryField.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyReleased(java.awt.event.KeyEvent e) {
+                String input = queryField.getText();
+                if (input.length() >= 2) {
+                    List<String> suggestions = historyManager.getSuggestions(input);
+                    if (!suggestions.isEmpty()) {
+                        suggestionLabel.setText("Suggestions from History: " + String.join(", ", suggestions));
+                    } else {
+                        suggestionLabel.setText("Suggestions: No previous matches.");
+                    }
+                }
+            }
+        });
 
         panel.add(top, BorderLayout.NORTH);
         panel.add(new JScrollPane(resultsArea), BorderLayout.CENTER);
@@ -102,6 +123,7 @@ public class SearchUI extends JFrame implements ScanListener {
                 case "Alphabetical" -> searchManager.setRankingStrategy(new AlphabeticRanking());
                 case "Last Modified" -> searchManager.setRankingStrategy(new LastModifiedRanking());
                 case "Last Accessed" -> searchManager.setRankingStrategy(new LastAccessedRanking());
+                case "Popularity" -> searchManager.setRankingStrategy(new PopularityRanking());
                 default -> searchManager.setRankingStrategy(new ScoreRanking());
             }
         }
@@ -124,6 +146,8 @@ public class SearchUI extends JFrame implements ScanListener {
                     } else if (selected.equals("Last Accessed")) {
                         String date = dateFormat.format(new Date(r.lastAccessed()));
                         sb.append("ACCESSED:   ").append(date).append("\n");
+                    } else if (selected.equals("Popularity")) {
+                        sb.append("SEARCH HITS: ").append(r.popularityCount()).append(" times\n");
                     }
 
                     sb.append("CONTEXT:    ").append(r.preview()).append("\n");
