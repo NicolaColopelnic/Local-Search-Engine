@@ -10,18 +10,21 @@ import java.util.Date;
 import java.util.List;
 
 public class SearchUI extends JFrame implements ScanListener {
-    private JTextArea logArea, reportArea, resultsArea;
+    private final JTextArea logArea;
+    private final JTextArea reportArea;
+    private JTextArea resultsArea;
     private JTextField queryField;
     private JComboBox<String> strategyBox;
-    private SearchManager searchManager;
     private JLabel suggestionLabel;
-    private HistoryManager historyManager = new HistoryManager();
+
+    private final SearchManager searchManager;
+    private final HistoryManager historyManager;
 
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("MMM dd, HH:mm:ss");
 
-    public SearchUI(SearchManager manager) {
+    public SearchUI(SearchManager manager, HistoryManager history) {
         this.searchManager = manager;
-        this.searchManager.addObserver(historyManager);
+        this.historyManager = history;
 
         setTitle("Local Search Engine");
         setSize(900, 700);
@@ -118,15 +121,8 @@ public class SearchUI extends JFrame implements ScanListener {
     private void runSearch() {
         String selected = (String) strategyBox.getSelectedItem();
 
-        if (selected != null) {
-            switch (selected) {
-                case "Alphabetical" -> searchManager.setRankingStrategy(new AlphabeticRanking());
-                case "Last Modified" -> searchManager.setRankingStrategy(new LastModifiedRanking());
-                case "Last Accessed" -> searchManager.setRankingStrategy(new LastAccessedRanking());
-                case "Popularity" -> searchManager.setRankingStrategy(new PopularityRanking());
-                default -> searchManager.setRankingStrategy(new ScoreRanking());
-            }
-        }
+        assert selected != null;
+        searchManager.setStrategy(selected);
 
         try {
             List<SearchResult> results = searchManager.search(queryField.getText());

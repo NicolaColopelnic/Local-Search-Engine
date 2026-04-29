@@ -4,12 +4,10 @@ import database.FileRepository;
 import scanner.FileScanner;
 import scanner.Indexer;
 import search.*;
-import search.LastModifiedRanking;
 import ui.SearchUI;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) throws IOException, SQLException {
@@ -19,8 +17,10 @@ public class Main {
         Indexer indexer = new Indexer(repository);
         FileScanner scanner = new FileScanner(indexer, config);
         SearchManager searcher = new SearchManager();
+        HistoryManager historyManager = new HistoryManager();
+        searcher.addObserver(historyManager);
 
-        SearchUI ui = new SearchUI(searcher);
+        SearchUI ui = new SearchUI(searcher, historyManager);
         indexer.setListener(ui);
         long startTime = System.currentTimeMillis();
 

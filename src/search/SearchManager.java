@@ -30,4 +30,14 @@ public class SearchManager {
         currentStrategy.sort(results);
         return results;
     }
+
+    public void setStrategy(String mode) {
+        switch (mode) {
+            case "Alphabetical" -> this.currentStrategy = new AlphabeticRanking();
+            case "Last Modified" -> this.currentStrategy = new LastModifiedRanking();
+            case "Last Accessed" -> this.currentStrategy = new LastAccessedRanking();
+            case "Popularity" -> this.currentStrategy = new PopularityRanking();
+            default -> this.currentStrategy = new ScoreRanking();
+        }
+    }
 }
