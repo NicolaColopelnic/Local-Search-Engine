@@ -16,6 +16,7 @@ public class SearchUI extends JFrame implements ScanListener {
     private JTextField queryField;
     private JComboBox<String> strategyBox;
     private JLabel suggestionLabel;
+    private JPanel widgetPanel;
 
     private final SearchManager searchManager;
     private final HistoryManager historyManager;
@@ -50,7 +51,7 @@ public class SearchUI extends JFrame implements ScanListener {
 
     private JPanel createSearchPanel() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
-        JPanel top = new JPanel(new FlowLayout());
+        JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
         suggestionLabel = new JLabel("Suggestions: ");
         suggestionLabel.setForeground(Color.GRAY);
         suggestionLabel.setFont(new Font("SansSerif", Font.ITALIC, 12));
@@ -65,6 +66,15 @@ public class SearchUI extends JFrame implements ScanListener {
         top.add(new JLabel("Sort:"));
         top.add(strategyBox);
         top.add(btn);
+
+        widgetPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        widgetPanel.setBackground(new Color(245, 245, 245));
+        widgetPanel.setVisible(false);
+
+        JPanel header = new JPanel(new BorderLayout());
+        header.add(top, BorderLayout.NORTH);
+        header.add(widgetPanel, BorderLayout.SOUTH);
+        panel.add(header, BorderLayout.NORTH);
 
         resultsContainer = new JPanel();
         resultsContainer.setLayout(new BoxLayout(resultsContainer, BoxLayout.Y_AXIS));
@@ -88,8 +98,6 @@ public class SearchUI extends JFrame implements ScanListener {
             }
         });
 
-        panel.add(top, BorderLayout.NORTH);
-        panel.add(new JScrollPane(resultsContainer), BorderLayout.CENTER);
         return panel;
     }
 
@@ -133,14 +141,30 @@ public class SearchUI extends JFrame implements ScanListener {
     }
 
     private void runSearch() {
+        String query = queryField.getText();
         String selected = (String) strategyBox.getSelectedItem();
         assert selected != null;
         searchManager.setStrategy(selected);
 
         try {
             List<SearchResult> results = searchManager.search(queryField.getText());
-
             resultsContainer.removeAll();
+
+            widgetPanel.removeAll();
+            List<JButton> buttons = WidgetFactory.getWidgets(query, results);
+
+            if (!buttons.isEmpty()) {
+                for (JButton btn : buttons) {
+                    widgetPanel.add(btn);
+                }
+                widgetPanel.setVisible(true);
+            } else {
+                widgetPanel.setVisible(false);
+            }
+
+            // refresh widget bar
+            widgetPanel.revalidate();
+            widgetPanel.repaint();
 
             if (results.isEmpty()) {
                 resultsContainer.add(new JLabel("No results found."));
@@ -186,6 +210,11 @@ public class SearchUI extends JFrame implements ScanListener {
 
             resultsContainer.revalidate();
             resultsContainer.repaint();
+
+            // scroll back to the top of the list
+            SwingUtilities.invokeLater(() -> {
+                resultsContainer.scrollRectToVisible(new Rectangle(0, 0, 1, 1));
+            });
 
         } catch (Exception ex) {
             JOptionPane.showMessageDialog(this, "Search Error: " + ex.getMessage());
