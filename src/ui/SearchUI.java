@@ -191,7 +191,10 @@ public class SearchUI extends JFrame implements ScanListener {
                     } else if (selected.equals("Popularity")) {
                         fileInfo.append("SEARCH HITS: ").append(r.popularityCount()).append("\n");
                     }
-                    fileInfo.append("CONTEXT: ").append(r.preview());
+                    // only show a preview if there is content in the file (not for images)
+                    if (r.preview() != null && !r.preview().trim().isEmpty()) {
+                        fileInfo.append("CONTEXT: ").append(r.preview());
+                    }
 
                     JTextArea textDisplay = new JTextArea(fileInfo.toString());
                     textDisplay.setFont(new Font("Monospaced", Font.PLAIN, 12));
