@@ -18,7 +18,7 @@ public class HistoryManager  implements SearchObserver{
 
         boolean isColorSearch = query.contains("color:");
         // ignore the qualifiers to update the popularity of matching files based on searched word
-        String cleanForMatch = query.replaceAll("(path|content|color):", "").trim();
+        String cleanForMatch = query.replaceAll("(path|content|color):", "").replace("*", "").trim();
 
         // save the string typed by the user to history
         String sqlHistory = "INSERT INTO search_history(query, search_date) VALUES(?, ?)";

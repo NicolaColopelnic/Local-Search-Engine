@@ -10,17 +10,19 @@ public class QueryParser {
     public SearchRequest parse(String rawQuery) {
         SearchRequest request = new SearchRequest();
         // regex finds key:value or just the value
-        Matcher matcher = Pattern.compile("(path|content|color):(\\S+)|(\\S+)").matcher(rawQuery);
+        Matcher matcher = Pattern.compile("((?:path|content|color):(?:\\([^\\)]+\\)|\\S+))|(\\([^\\)]+\\)|\\S+)").matcher(rawQuery);
 
         while (matcher.find()) {
-            if (matcher.group(1) != null) { // key:value found
-                String key = matcher.group(1);
-                String value = matcher.group(2);
+            String part = matcher.group(0);
+            if(part.contains(":")) {
+                String[] parts = part.split(":", 2);
+                String key = parts[0].toLowerCase();
+                String value = parts[1];
                 if (key.equalsIgnoreCase("path")) request.addPathFilter(value);
                 else if(key.equalsIgnoreCase("content")) request.addContentFilter(value);
                 else if (key.equalsIgnoreCase("color")) request.addColorFilter(value);
-            } else if (matcher.group(3) != null) { // plain word found
-                request.addContentFilter(matcher.group(3));
+            } else {
+                request.addContentFilter(part);
             }
         }
         return request;

@@ -1,6 +1,7 @@
-package search;
+package search.ranking;
 
 import search.SearchResult;
+
 import java.util.List;
 
 public class PopularityRanking implements Ranking {

@@ -1,4 +1,4 @@
-package scanner;
+package scanner.strategy;
 
 import javax.imageio.ImageIO;
 import java.awt.*;

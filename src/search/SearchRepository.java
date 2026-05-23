@@ -66,13 +66,14 @@ public class SearchRepository {
         // combine the path filters with AND
         for (String p : request.getPathFilters()) {
             if (queryBuilder.length() > 0) queryBuilder.append(" AND "); // if there is already something in the string add AND
-            queryBuilder.append("path:").append(p).append("*"); // allow partial path matching ( * = fts5 prefix operator)
+            queryBuilder.append("path:").append(p);
+            if (!p.endsWith("*")) queryBuilder.append("*");
         }
 
         // combine content filters with AND
         for (String c : request.getContentFilters()) {
             if (queryBuilder.length() > 0) queryBuilder.append(" AND ");
-            queryBuilder.append("content:").append(c);
+            queryBuilder.append(c);
         }
 
         return queryBuilder.toString();

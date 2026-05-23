@@ -1,4 +1,6 @@
-package scanner;
+package scanner.strategy;
+
+import scanner.ContentReader;
 
 import java.io.File;
 

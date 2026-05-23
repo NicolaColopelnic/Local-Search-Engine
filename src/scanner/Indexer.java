@@ -2,6 +2,10 @@ package scanner;
 
 import database.FileDocument;
 import database.FileRepository;
+import scanner.strategy.ImageIndexingStrategy;
+import scanner.strategy.IndexingStrategy;
+import scanner.strategy.TextIndexingStrategy;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;

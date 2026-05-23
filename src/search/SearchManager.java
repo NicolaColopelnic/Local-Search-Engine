@@ -1,5 +1,8 @@
 package search;
 
+import search.pipeline.*;
+import search.ranking.*;
+
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,11 +20,20 @@ public class SearchManager {
     }
 
     public List<SearchResult> search(String userQuery) throws SQLException {
+        // set up the pipeline:
+        QueryBuilder pipeline = new LogicDecorator(
+                                    new SynonymDecorator(
+                                        new SanitizationDecorator(
+                                            new SimpleQueryBuilder())));
+
+        // process the query through the pipeline
+        String processedQuery = pipeline.build(userQuery);
+
         for (SearchObserver observer : observers) {
-            observer.onSearchPerformed(userQuery);
+            observer.onSearchPerformed(processedQuery);
         }
 
-        SearchRequest request = parser.parse(userQuery);
+        SearchRequest request = parser.parse(processedQuery);
         List<SearchResult> results = repository.executeSearch(request);
         currentStrategy.sort(results);
         return results;

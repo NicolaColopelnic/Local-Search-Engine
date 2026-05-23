@@ -1,4 +1,4 @@
-package scanner;
+package scanner.strategy;
 
 import java.io.File;
 

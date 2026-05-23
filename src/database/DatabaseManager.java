@@ -33,7 +33,7 @@ public class DatabaseManager {
         try (Connection connection = DbConnection.getConnection();
              Statement stm = connection.createStatement()) {
             // delete tables and start fresh
-            stm.execute("DROP TABLE IF EXISTS files;");
+            //stm.execute("DROP TABLE IF EXISTS files;");
             //stm.execute("DROP TABLE IF EXISTS file_index;");
             //stm.execute("DROP TABLE IF EXISTS search_history;");
             // stm is used to write in the database
