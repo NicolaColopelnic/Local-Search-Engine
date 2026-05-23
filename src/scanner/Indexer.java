@@ -13,6 +13,7 @@ public class Indexer {
     private final FileRepository repository;
     // performance metrics for report
     private int filesIndexed = 0;
+    private int imagesIndexed = 0;
     private int filesSkipped = 0;
     private int filesFailed = 0;
     private long totalBytesIndexed = 0;
@@ -29,9 +30,19 @@ public class Indexer {
     }
 
     // main logic for file indexing, handles change detection
-    public void processAndIndexFile(File file, String content) {
+    public void processAndIndexFile(File file) {
         try {
             String path = file.getAbsolutePath();
+
+            String mimeType = Files.probeContentType(file.toPath());
+
+            IndexingStrategy strategy;
+            if (mimeType != null && mimeType.startsWith("image")) {
+                strategy = new ImageIndexingStrategy();
+            } else {
+                strategy = new TextIndexingStrategy();
+            }
+
             // generate a unique SHA-256 fingerprint for the current file content
             String newChecksum = CheckSum.calculateChecksum(file.toPath());
             // get existing fingerprint from the database to detect modifications
@@ -53,15 +64,24 @@ public class Indexer {
                 if (listener != null) listener.onLog("[UPDATE] " + file.getName());
             }
 
-            filesIndexed++;
-            totalBytesIndexed += file.length();
+            String extractedData = strategy.extractData(file);
+            String content = "", color = "";
+
+            if(strategy instanceof ImageIndexingStrategy) {
+                imagesIndexed++;
+                color = extractedData;
+            } else {
+                content = extractedData;
+            }
 
             BasicFileAttributes attrs = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
             long lastAccessed = attrs.lastAccessTime().toMillis();
             long lastModified = attrs.lastModifiedTime().toMillis();
+            filesIndexed++;
+            totalBytesIndexed += file.length();
 
             // instantiate a file object
-            FileDocument doc = new FileDocument(path, file.getName(), lastModified, lastAccessed, file.length(), content, newChecksum, score);
+            FileDocument doc = new FileDocument(path, file.getName(), lastModified, lastAccessed, file.length(), content, newChecksum, score, color);
             repository.save(doc);
 
         } catch (Exception e) {
@@ -71,6 +91,7 @@ public class Indexer {
     }
 
     public int getFilesIndexed() { return filesIndexed; }
+    public int getImagesIndexed() { return imagesIndexed; }
     public int getFilesSkipped() { return filesSkipped; }
     public int getFilesFailed() { return filesFailed; }
     public long getTotalBytesIndexed() { return totalBytesIndexed; }

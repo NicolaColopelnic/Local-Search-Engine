@@ -12,7 +12,7 @@ import java.util.Set;
 public class FileScanner {
     private final Indexer indexer;
     private final ScanFilter filter;
-    private final ContentReader reader;
+
     private int foldersScanned = 0;
     private int loopsDetected = 0;
 
@@ -22,7 +22,6 @@ public class FileScanner {
     public FileScanner(Indexer indexer, Configuration config) {
         this.indexer = indexer;
         this.filter = new ScanFilter(config);
-        this.reader = new ContentReader();
     }
 
     public void scanDirectory(String rootPath) throws IOException {
@@ -37,7 +36,8 @@ public class FileScanner {
         if (visitedCanonicalPaths.contains(canonicalPath)) {
             loopsDetected++;
             if (indexer.getListener() != null)
-                indexer.getListener().onLog("[LOOP] Skipping: " + folder.getPath());            return;
+                indexer.getListener().onLog("[LOOP] Skipping: " + folder.getPath());
+            return;
         }
         visitedCanonicalPaths.add(canonicalPath);
 
@@ -51,14 +51,8 @@ public class FileScanner {
             if (file.isDirectory()) {
                 walk(file); // recursive call for subdirectories
             } else {
-                // read content only from text files
-                String content = "";
-                if (filter.isTextFile(file.getName())) {
-                    content = reader.readAll(file);
-                }
-
                 // hand off to indexer
-                indexer.processAndIndexFile(file, content);
+                indexer.processAndIndexFile(file);
             }
         }
     }

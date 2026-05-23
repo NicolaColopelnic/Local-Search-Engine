@@ -17,9 +17,9 @@ public class DatabaseManager {
                 "size INTEGER, " +
                 "checksum TEXT," +
                 "rank_score REAL, " +
-                "popularity_count INTEGER DEFAULT 0);";
+                "popularity_count INTEGER DEFAULT 0, " +
+                "dominant_color TEXT );";
 
-        // Inside DatabaseManager.java -> initialize()
         String sqlHistory = "CREATE TABLE IF NOT EXISTS search_history (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "query TEXT, " +
@@ -33,8 +33,9 @@ public class DatabaseManager {
         try (Connection connection = DbConnection.getConnection();
              Statement stm = connection.createStatement()) {
             // delete tables and start fresh
-            //stm.execute("DROP TABLE IF EXISTS files;");
+            stm.execute("DROP TABLE IF EXISTS files;");
             //stm.execute("DROP TABLE IF EXISTS file_index;");
+            //stm.execute("DROP TABLE IF EXISTS search_history;");
             // stm is used to write in the database
             stm.execute(sqlMetadata);
             stm.execute(sqlFTS);

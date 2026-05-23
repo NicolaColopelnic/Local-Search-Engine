@@ -16,10 +16,6 @@ public class SearchManager {
         observers.add(observer);
     }
 
-    public void setRankingStrategy(Ranking strategy) {
-        currentStrategy = strategy;
-    }
-
     public List<SearchResult> search(String userQuery) throws SQLException {
         for (SearchObserver observer : observers) {
             observer.onSearchPerformed(userQuery);

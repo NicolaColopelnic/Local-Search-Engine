@@ -32,7 +32,8 @@ public class Main {
         ui.onProgressUpdate(
                 indexer.getFilesIndexed(), indexer.getFilesSkipped(),
                 indexer.getFilesFailed(), scanner.getFoldersScanned(),
-                scanner.getLoopsDetected(), indexer.getTotalBytesIndexed(), durationSeconds
+                scanner.getLoopsDetected(), indexer.getImagesIndexed(),
+                indexer.getTotalBytesIndexed(), durationSeconds
         );
 
         ui.setVisible(true);

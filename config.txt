@@ -4,4 +4,7 @@ ignoreFolders=.git,.idea,target
 
 textExtensions=.java,.txt,.md,.xml,.java
 
+imageExtensions=.jpg,.jpeg,.png,.bmp,.gif,.webp,.jfif
+
+
 searchTerm=Database

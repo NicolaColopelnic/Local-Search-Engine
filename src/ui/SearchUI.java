@@ -12,7 +12,7 @@ import java.util.List;
 public class SearchUI extends JFrame implements ScanListener {
     private final JTextArea logArea;
     private final JTextArea reportArea;
-    private JTextArea resultsArea;
+    private JPanel resultsContainer;
     private JTextField queryField;
     private JComboBox<String> strategyBox;
     private JLabel suggestionLabel;
@@ -60,14 +60,17 @@ public class SearchUI extends JFrame implements ScanListener {
         strategyBox = new JComboBox<>(new String[]{"Score", "Alphabetical", "Last Modified", "Last Accessed", "Popularity"});
         JButton btn = new JButton("Search");
 
-        top.add(new JLabel("Query:")); top.add(queryField);
-        top.add(new JLabel("Sort:")); top.add(strategyBox);
+        top.add(new JLabel("Query:"));
+        top.add(queryField);
+        top.add(new JLabel("Sort:"));
+        top.add(strategyBox);
         top.add(btn);
 
-        resultsArea = new JTextArea();
-        resultsArea.setFont(new Font("Monospaced", Font.PLAIN, 13));
-        resultsArea.setEditable(false);
-        resultsArea.setMargin(new Insets(10, 10, 10, 10));
+        resultsContainer = new JPanel();
+        resultsContainer.setLayout(new BoxLayout(resultsContainer, BoxLayout.Y_AXIS));
+        resultsContainer.setBackground(Color.WHITE);
+        JScrollPane scrollPane = new JScrollPane(resultsContainer);
+        panel.add(scrollPane, BorderLayout.CENTER);
 
         btn.addActionListener(e -> runSearch());
         queryField.addKeyListener(new java.awt.event.KeyAdapter() {
@@ -86,7 +89,7 @@ public class SearchUI extends JFrame implements ScanListener {
         });
 
         panel.add(top, BorderLayout.NORTH);
-        panel.add(new JScrollPane(resultsArea), BorderLayout.CENTER);
+        panel.add(new JScrollPane(resultsContainer), BorderLayout.CENTER);
         return panel;
     }
 
@@ -96,64 +99,97 @@ public class SearchUI extends JFrame implements ScanListener {
     }
 
     @Override
-    public void onProgressUpdate(int indexed, int skipped, int failed, int folders, int loops, long bytes, double duration) {
+    public void onProgressUpdate(int indexed, int skipped, int failed, int folders, int loops, int images, long bytes, double duration) {
         String report = String.format("""
-    FINAL SCAN REPORT
-    
-    Execution Time:      %.3f seconds
-    
-    Filesystem Navigation:
-    - Folders Traversed: %d
-    - Loops Detected:    %d
-    
-    Database Synchronization:
-    - Files Indexed:     %d
-    - Files Skipped:     %d
-    - Files Failed:      %d
-    
-    Storage Metrics:
-    - Total Data Size:   %.2f KB
-    """, duration, folders, loops, indexed, skipped, failed, bytes / 1024.0);
+                FINAL SCAN REPORT
+                
+                Execution Time:      %.3f seconds
+                
+                Filesystem Navigation:
+                - Folders Traversed: %d
+                - Loops Detected:    %d
+                
+                Database Synchronization:
+                - Files Indexed:     %d
+                - Images Indexed:     %d
+                - Files Skipped:     %d
+                - Files Failed:      %d
+                
+                Storage Metrics:
+                - Total Data Size:   %.2f KB
+                """, duration, folders, loops, indexed, images, skipped, failed, bytes / 1024.0);
 
         reportArea.setText(report);
     }
 
+    private JLabel createThumbnail(String path) {
+        try {
+            ImageIcon icon = new ImageIcon(path);
+            Image scaled = icon.getImage().getScaledInstance(100, 100, Image.SCALE_SMOOTH);
+            return new JLabel(new ImageIcon(scaled));
+        } catch (Exception e) {
+            return new JLabel("No preview");
+        }
+    }
+
     private void runSearch() {
         String selected = (String) strategyBox.getSelectedItem();
-
         assert selected != null;
         searchManager.setStrategy(selected);
 
         try {
             List<SearchResult> results = searchManager.search(queryField.getText());
-            StringBuilder sb = new StringBuilder();
+
+            resultsContainer.removeAll();
 
             if (results.isEmpty()) {
-                sb.append("No results found.");
+                resultsContainer.add(new JLabel("No results found."));
             } else {
                 for (SearchResult r : results) {
-                    sb.append("FILE: ").append(r.fileName()).append("\n");
+                    JPanel card = new JPanel(new BorderLayout(10, 5));
+                    card.setBackground(Color.WHITE);
+                    card.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, Color.LIGHT_GRAY));
+                    card.setMaximumSize(new Dimension(Integer.MAX_VALUE, 120));
 
-                    if (selected.equals("Score")) {
-                        sb.append("RANK SCORE: ").append(String.format("%.2f", r.score())).append("\n");
-                    } else if (selected.equals("Last Modified")) {
-                        String date = dateFormat.format(new Date(r.lastModified()));
-                        sb.append("MODIFIED:   ").append(date).append("\n");
-                    } else if (selected.equals("Last Accessed")) {
-                        String date = dateFormat.format(new Date(r.lastAccessed()));
-                        sb.append("ACCESSED:   ").append(date).append("\n");
-                    } else if (selected.equals("Popularity")) {
-                        sb.append("SEARCH HITS: ").append(r.popularityCount()).append(" times\n");
+                    StringBuilder fileInfo = new StringBuilder();
+                    fileInfo.append("FILE: ").append(r.fileName()).append("\n");
+
+                    if (r.dominantColor() != null && !r.dominantColor().isEmpty()) {
+                        fileInfo.append("COLOR: ").append(r.dominantColor().toUpperCase()).append("\n");
                     }
 
-                    sb.append("CONTEXT:    ").append(r.preview()).append("\n");
-                    sb.append("-".repeat(70)).append("\n\n");
+                    if (selected.equals("Score")) {
+                        fileInfo.append("RANK SCORE: ").append(String.format("%.2f", r.score())).append("\n");
+                    } else if (selected.equals("Last Modified")) {
+                        fileInfo.append("MODIFIED: ").append(dateFormat.format(new Date(r.lastModified()))).append("\n");
+                    } else if (selected.equals("Last Accessed")) {
+                        fileInfo.append("ACCESSED: ").append(dateFormat.format(new Date(r.lastAccessed()))).append("\n");
+                    } else if (selected.equals("Popularity")) {
+                        fileInfo.append("SEARCH HITS: ").append(r.popularityCount()).append("\n");
+                    }
+                    fileInfo.append("CONTEXT: ").append(r.preview());
+
+                    JTextArea textDisplay = new JTextArea(fileInfo.toString());
+                    textDisplay.setFont(new Font("Monospaced", Font.PLAIN, 12));
+                    textDisplay.setEditable(false);
+                    textDisplay.setOpaque(false);
+                    card.add(textDisplay, BorderLayout.CENTER);
+
+                    if (r.dominantColor() != null && !r.dominantColor().isEmpty()) {
+                        JLabel imageLabel = createThumbnail(r.path());
+                        card.add(imageLabel, BorderLayout.EAST);
+                    }
+
+                    resultsContainer.add(card);
                 }
             }
-            resultsArea.setText(sb.toString());
-            resultsArea.setCaretPosition(0);
+
+            resultsContainer.revalidate();
+            resultsContainer.repaint();
+
         } catch (Exception ex) {
-            resultsArea.setText("Search Error: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Search Error: " + ex.getMessage());
         }
     }
+
 }

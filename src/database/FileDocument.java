@@ -4,5 +4,5 @@ package database;
 // it holds the location (path), physical stats (size, lastModified), the fingerprint (checksum), the actual text (content) of a file
 
 public record FileDocument (String path, String fileName, long lastModified, long lastAccessed, long size, String content,
-                           String checksum, double rankScore) {
+                           String checksum, double rankScore, String dominantColor) {
 }

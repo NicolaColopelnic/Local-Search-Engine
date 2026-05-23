@@ -12,22 +12,46 @@ public class SearchRepository {
         List<SearchResult> results = new ArrayList<>();
         String query = buildSql(request);
 
-        String sql = "SELECT file_index.filename, snippet(file_index, 2, '[', ']', '...', 10) as preview, f.rank_score, f.last_modified, f.last_accessed, f.popularity_count " +
-                "FROM file_index JOIN files f ON file_index.path = f.path " +
-                "WHERE file_index MATCH ? ORDER BY f.rank_score DESC;";
+        StringBuilder sql = new StringBuilder(
+                "SELECT file_index.path, file_index.filename, snippet(file_index, 2, '[', ']', '...', 10) as preview, " +
+                        "f.rank_score, f.last_modified, f.last_accessed, f.popularity_count, f.dominant_color " +
+                        "FROM file_index JOIN files f ON file_index.path = f.path " +
+                        "WHERE 1=1");
+
+        if (!query.isEmpty()) {
+            sql.append(" AND file_index MATCH ?");
+        }
+
+        if (!request.getColorFilters().isEmpty()) {
+            sql.append(" AND f.dominant_color = ?");
+        }
+
+        sql.append(" ORDER BY f.rank_score DESC;");
 
         try(Connection conn = DbConnection.getConnection();
-            PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, query);
+            PreparedStatement pstmt = conn.prepareStatement(sql.toString())) {
+
+            int paramIndex = 1;
+            if(!(query.isEmpty())) {
+                pstmt.setString(paramIndex++, query);
+            }
+
+            if(!request.getColorFilters().isEmpty()) {
+                pstmt.setString(paramIndex, request.getColorFilters().get(0));
+            }
+
             ResultSet rs = pstmt.executeQuery();
 
             while(rs.next()) {
-                results.add(new SearchResult(rs.getString("filename"),
+                results.add(new SearchResult(
+                        rs.getString("path"),
+                        rs.getString("filename"),
                         rs.getString("preview"),
                         rs.getDouble("rank_score"),
                         rs.getLong("last_modified"),
                         rs.getLong("last_accessed"),
-                        rs.getInt("popularity_count")));
+                        rs.getInt("popularity_count"),
+                        rs.getString("dominant_color")));
             }
         } catch (SQLException e) {
             System.err.println("Error: " + e.getMessage());
@@ -50,6 +74,7 @@ public class SearchRepository {
             if (queryBuilder.length() > 0) queryBuilder.append(" AND ");
             queryBuilder.append("content:").append(c);
         }
+
         return queryBuilder.toString();
     }
 }

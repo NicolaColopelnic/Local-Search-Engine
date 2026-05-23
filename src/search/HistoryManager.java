@@ -16,17 +16,23 @@ public class HistoryManager  implements SearchObserver{
     public void onSearchPerformed(String query) {
         if (query.trim().isEmpty()) return; // prevents saving empty strings
 
+        boolean isColorSearch = query.contains("color:");
         // ignore the qualifiers to update the popularity of matching files based on searched word
-        String cleanForMatch = query.replaceAll("(path|content):", "").trim();
+        String cleanForMatch = query.replaceAll("(path|content|color):", "").trim();
 
         // save the string typed by the user to history
         String sqlHistory = "INSERT INTO search_history(query, search_date) VALUES(?, ?)";
 
         // add 1 to the popularity of the matching file
-        String sqlPopularity = """
-        UPDATE files SET popularity_count = popularity_count + 1 
-        WHERE path IN (SELECT path FROM file_index WHERE file_index MATCH ?)
-        """;
+        String sqlPopularity;
+        if(isColorSearch){
+            sqlPopularity = "UPDATE files SET popularity_count = popularity_count + 1 WHERE dominant_color = ?";
+        } else {
+            sqlPopularity = """
+            UPDATE files SET popularity_count = popularity_count + 1 
+            WHERE path IN (SELECT path FROM file_index WHERE file_index MATCH ?)
+            """;
+        }
 
         try (Connection conn = database.DbConnection.getConnection()) {
             conn.setAutoCommit(false);
